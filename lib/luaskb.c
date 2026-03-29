@@ -18,6 +18,7 @@
 #include <net/ip6_checksum.h>
 
 #include "luaskb.h"
+#include "luaconntrack.h"
 
 LUNATIK_PRIVATECHECKER(luaskb_check, luaskb_t *,
 	luaL_argcheck(L, private->skb != NULL, ix, "skb is not set");
@@ -206,20 +207,42 @@ static void luaskb_release(void *private)
 		luadata_close(lskb->data);
 }
 
+static int luaskb_conntrack(lua_State *L)
+{
+	luaskb_t *lskb = luaskb_check(L, 1);
+	enum ip_conntrack_info ctinfo;
+	struct nf_conn *ct;
+
+	ct = nf_ct_get(lskb->skb, &ctinfo);
+	if (!ct)
+		return 0;
+
+	lunatik_require(L, "conntrack");
+	lunatik_object_t *object = lunatik_newobject(L, &luaconntrack_class,
+		sizeof(luaconntrack_t), LUNATIK_OPT_NONE);
+	luaconntrack_t *lct = (luaconntrack_t *)object->private;
+	lct->ct = ct;
+	lct->ctinfo = ctinfo;
+
+	lua_pushinteger(L, ctinfo);
+	return 2;
+}
+
 static const luaL_Reg luaskb_lib[] = {
 	{NULL, NULL}
 };
 
 static const luaL_Reg luaskb_mt[] = {
-	{"__gc",     lunatik_deleteobject},
-	{"__len",    luaskb_len},
-	{"ifindex",  luaskb_ifindex},
-	{"vlan",     luaskb_vlan},
-	{"data",     luaskb_data},
-	{"resize",   luaskb_resize},
-	{"checksum", luaskb_checksum},
-	{"forward",  luaskb_forward},
-	{"copy",     luaskb_copy},
+	{"__gc",       lunatik_deleteobject},
+	{"__len",      luaskb_len},
+	{"ifindex",    luaskb_ifindex},
+	{"vlan",       luaskb_vlan},
+	{"data",       luaskb_data},
+	{"resize",     luaskb_resize},
+	{"checksum",   luaskb_checksum},
+	{"forward",    luaskb_forward},
+	{"copy",       luaskb_copy},
+	{"conntrack",  luaskb_conntrack},
 	{NULL, NULL}
 };
 

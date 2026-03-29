@@ -115,6 +115,16 @@ config LUNATIK_NETFILTER
 	  New Netfilter API bindings.
 	  Requires Lunatik SKB support.
 
+config LUNATIK_CONNTRACK
+	tristate "Lunatik Conntrack (Connection Tracking) Support"
+	default m
+	depends on LUNATIK_SKB
+	depends on NF_CONNTRACK
+	help
+	  Lua bindings for Linux Netfilter Connection Tracking.
+	  Allows fetching conntrack state and tuples from sk_buffs.
+	  Requires Lunatik SKB and kernel NF_CONNTRACK support.
+
 config LUNATIK_COMPLETION
 	tristate "Lunatik Completion Support"
 	default m

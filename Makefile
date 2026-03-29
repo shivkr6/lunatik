@@ -33,7 +33,7 @@ CONFIG_LUNATIK_RUN ?= m
 # Order matters: modules are loaded left-to-right and unloaded right-to-left (rmmod).
 # A module must appear AFTER all modules it depends on (e.g. SKB before NETFILTER).
 LUNATIK_MODULES := DEVICE LINUX NOTIFIER SOCKET RCU THREAD FIB DATA PROBE SYSCALL XDP FIFO SKB NETFILTER \
-	COMPLETION CRYPTO CPU HID SIGNAL BYTEORDER DARKEN
+	CONNTRACK COMPLETION CRYPTO CPU HID SIGNAL BYTEORDER DARKEN
 
 $(foreach c,$(LUNATIK_MODULES),\
 	$(eval CONFIG_LUNATIK_$(c) ?= m))
@@ -52,7 +52,7 @@ LUNATIK_MODULES := \
 		$(if $(filter y m,$(CONFIG_LUNATIK_$(c))),$(c)))
 
 all: lunatik_sym.h configure
-	${MAKE} -C ${MODULES_BUILD_PATH} M=${PWD} $(LUNATIK_CONFIG_FLAGS)
+	${MAKE} -C ${MODULES_BUILD_PATH} M=${PWD} $(LUNATIK_CONFIG_FLAGS) OBJECT_FILES_NON_STANDARD=y
 
 clean:
 	${MAKE} -C ${MODULES_BUILD_PATH} M=${PWD} clean
@@ -138,12 +138,15 @@ tests_install:
 	${INSTALL} -m 0755 tests/crypto/run.sh ${LUNATIK_TESTS_INSTALL_PATH}/crypto
 	${MKDIR} ${LUNATIK_TESTS_INSTALL_PATH}/monitor
 	${INSTALL} -m 0755 tests/monitor/*.sh ${LUNATIK_TESTS_INSTALL_PATH}/monitor
+	${MKDIR} ${SCRIPTS_INSTALL_PATH}/tests/monitor
 	${INSTALL} -m 0644 tests/monitor/*.lua ${SCRIPTS_INSTALL_PATH}/tests/monitor
 	${MKDIR} ${LUNATIK_TESTS_INSTALL_PATH}/thread
 	${INSTALL} -m 0755 tests/thread/*.sh ${LUNATIK_TESTS_INSTALL_PATH}/thread
+	${MKDIR} ${SCRIPTS_INSTALL_PATH}/tests/thread
 	${INSTALL} -m 0644 tests/thread/*.lua ${SCRIPTS_INSTALL_PATH}/tests/thread
 	${MKDIR} ${LUNATIK_TESTS_INSTALL_PATH}/runtime
 	${INSTALL} -m 0755 tests/runtime/*.sh ${LUNATIK_TESTS_INSTALL_PATH}/runtime
+	${MKDIR} ${SCRIPTS_INSTALL_PATH}/tests/runtime
 	${INSTALL} -m 0644 tests/runtime/*.lua ${SCRIPTS_INSTALL_PATH}/tests/runtime
 	${MKDIR} ${LUNATIK_TESTS_INSTALL_PATH}/socket/unix
 	${INSTALL} -m 0755 tests/socket/run.sh ${LUNATIK_TESTS_INSTALL_PATH}/socket
